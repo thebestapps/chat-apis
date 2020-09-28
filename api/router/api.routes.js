@@ -45,6 +45,11 @@ var upload = multer({ storage: storage }).single('profile_pick')
 
         router.post('/api/login', apis.login);
         router.post('/api/signup',upload,apis.signup);
+
+        // ---
+        router.put("/api/updateUser/:id", apis.updateUser);
+        
+        // ---
         router.post('/api/lat_long', verifyToken, apis.lat_long)
         router.post('/api/add_new_pin_point', apis.addNewPinPoint);
         router.post('/api/get_all_pin_points',apis.getAllPinPoints);
