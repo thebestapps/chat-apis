@@ -215,7 +215,6 @@ exports.addNewPinPoint = async function(req,res){
 		pin_ponts.long = long;
 		pin_ponts.pin_icon_type = type;
         pin_ponts.message = message;
-        pin_type
         pin_ponts.circle_id = circle_id;
         
 		pin_ponts.save((err, saved) => {
