@@ -8,6 +8,7 @@ const mongoose = require('mongoose');
 const passport = require('passport');
 const bodyParser = require('body-parser');
 const path = require('path');
+const send_notification = require('./config/notification');
 const config = require('./config/config.js');
 require("dotenv").config();
 
@@ -188,6 +189,28 @@ app.post('/chat/:id', (req, res) => {
   console.log(res);
 })
 
+app.post('/testing',async (req, res) => {
+  var data = req.body.data
+  var chatData = await chat.findOneAndUpdate(
+    { _id: "5f406011044fb5513392f5a5" },
+    { $addToSet: { chat: data } },
+    function (err) {
+      if (err) {
+        console.log(err);
+      }
+    },
+  );
+  const arrayOfUser = chatData.members.filter(temp => temp!= data.user_id);
+  for(var i=0;i<arrayOfUser.length;i++){
+    console.log(arrayOfUser[i]);
+    var msg = {
+      title: `${data.username}`,
+      body: `${data.text}`
+    }
+    send_notification.sendNotification(arrayOfUser[i], "", msg)
+  }
+})
+
 
 // =============================================================
 const formatMessage = require("./utils/messages");
@@ -217,7 +240,7 @@ io.on('connection', socket => {
   storeMessage = async (roomid, data) => {
     console.log(data);
     try {
-      await chat.findOneAndUpdate(
+      var chatData = await chat.findOneAndUpdate(
         { _id: roomid },
         { $addToSet: { chat: data } },
         function (err) {
@@ -226,6 +249,15 @@ io.on('connection', socket => {
           }
         },
       );
+      const arrayOfUser = chatData.members.filter(temp => temp!= data.user_id);
+      for(var i=0;i<arrayOfUser.length;i++){
+        console.log(arrayOfUser[i]);
+        var msg = {
+          title: `${data.username}`,
+          body: `${data.text}`
+        }
+        send_notification.sendNotification(arrayOfUser[i], "", msg)
+      }
     } catch (error) {
       console.log(error);
     }

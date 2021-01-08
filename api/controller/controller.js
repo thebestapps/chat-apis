@@ -916,4 +916,43 @@ exports.testing = function(req, res){
             });
         }
     }
+
+// ==================== get lat lon by ditance ========================
+
+exports.getPinByAssending = function(req, res){
+    var lat1 =req.body.lat
+    var lon1 =req.body.long
+    map_lat_longModel.find({},(err,res1)=>{
+        if(err){
+            return res.json({
+                status:false,
+                message:'Some error occoured.'
+            })
+        }else{
+            for(var i = 0;i<res1.length;i++){
+                var lat2=res1[i].lat
+                var lon2=res1[i].long
+                var radlat1 = Math.PI * lat1/180;
+                    var radlat2 = Math.PI * lat2/180;
+                    var theta = lon1-lon2;
+                    var radtheta = Math.PI * theta/180;
+                    var dist = Math.sin(radlat1) * Math.sin(radlat2) + Math.cos(radlat1) * Math.cos(radlat2) * Math.cos(radtheta);
+                    if (dist > 1) {
+                        dist = 1;
+                    }
+                    dist = Math.acos(dist);
+                    dist = dist * 180/Math.PI;
+                    dist = dist * 60 * 1.1515;
+                    dist = dist * 1.609344 
+                    res1[i]["__v"]=dist
+            }
+            res1.sort((a,b) => (a.__v > b.__v) ? 1 : ((b.__v > a.__v) ? -1 : 0)); 
+
+            res.status(201).send({
+                data:res1
+            });
+        }
+    })
+    
+}
 // ==================================================================

@@ -25,14 +25,19 @@ method.sendNotification = (userId, msg_id, msg) =>{
         if(err){
             console.log(err);
         } else if(data){
-            console.log(data);
+            // console.log(data);
             if(data.device_token){
                 admin.messaging().sendToDevice(data.device_token, payload, options)
                 .then(function(response){
                     if(data.device_os){
                         admin.messaging().sendToDevice(data.device_os, payload, options)
                     }
-                    console.log("Successfully send message: ", response);
+                    // console.log("Successfully send message: ", response);
+                    if(response.failureCount==1){
+                        console.error("mobile token is not valid");
+                    }else{
+                        console.log("notification sent successfully");
+                    }
                     if(data && response.successCount){
                         console.log(data);
                         found = {
