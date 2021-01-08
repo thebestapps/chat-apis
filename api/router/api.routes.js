@@ -66,7 +66,7 @@ var upload = multer({ storage: storage }).single('profile_pick')
         router.post('/api/chat_group_box', verifyToken, apis.join_group_find);
         router.post('/api/chat_group_list', verifyToken, apis.group_chat_list);
         // ===============================================================
-        // ====================== testing only ========================
+        // ====================== testing only =====================
         router.post('/api/testing', apis.testing);
         // ============================================================
     // }
