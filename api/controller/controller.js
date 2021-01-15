@@ -36,7 +36,7 @@ exports.signup = function(req, res){
                 if (type == "email") {
                     return res.json({
                         success: 0,
-                        message: "email  is already registered",
+                        message: "email  is already registered may be with google or facebook",
                         data: ''
                     });
                 } else {
@@ -130,7 +130,65 @@ exports.login = function(req, res){
                 });
             }
         });
-    } else {
+    }
+    else if(req.body.type && req.body.email && req.body.device_token && req.body.device_os){
+        console.log("social login");
+        if(req.body.type=="social"){
+            user.findOne({'email': req.body.email},function(err, found){
+                if (err){
+                    return res.json({
+                        success: 0,
+                        message: err,
+                        data: ''
+                    });
+                }
+    
+                if (!found) {
+                    user.create({
+                        username:req.body.email,
+                        email:req.body.email,
+                        device_token:"xxxxx",
+                        device_os:"xxxx"
+                    },function(err,data){
+                        if (err){
+                            return res.json({
+                                success: 0,
+                                message: err,
+                                data: ''
+                            });
+                        }else{
+                            console.log("data",data);
+                            var token = common.generateAccessToken(data.toJSON());
+                            return res.json({
+                                success: 1,
+                                message: "LoggedIn",
+                                user: data.username,
+                                user_id:data._id,
+                                user_token: token,
+                            });
+                        }
+                    })
+                }else{
+                    var token = common.generateAccessToken(found.toJSON());
+                    user.findByIdAndUpdate(found._id, {device_token: req.body.device_token, device_os: req.body.device_os}, {new: true});
+                    return res.json({
+                        success: 1,
+                        message: "LoggedIn",
+                        user: found.username,
+                        user_id:found._id,
+                        user_token: token,
+                    });
+                }
+            });
+        }else{
+            return res.json({
+                success: 0,
+                message: 'please specify type of login it must social',
+                data: ''
+            });
+        }
+    }
+    else {
         return res.json({
             success: 0,
             message: "all field required for login",
