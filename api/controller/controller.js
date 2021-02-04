@@ -335,7 +335,8 @@ usercirclesModel.find({$or:[{user_id:user_id},{circles_user_id:user_id}]},(err1,
                 arr.push({user:friend_id,circle_id:item1})
             })
         })
-        map_lat_longModel.find({$or:[{circle_id:'Public'},{circle_id:null},{user:user_id},...arr]},{_id:1},(err2,res2)=>{
+        map_lat_longModel.find({$and:[{$or:[{circle_id:'Public'},{circle_id:null},{user:user_id},...arr]},{"createdAt":{$gt:new Date(Date.now() - 20*24*60*60 * 1000)}}]},{_id:1},(err2,res2)=>{
+        // map_lat_longModel.find({$or:[{circle_id:'Public'},{circle_id:null},{user:user_id},...arr]},(err2,res2)=>{
             if(err2){
                 return res.json({
                     status:false,
@@ -348,15 +349,42 @@ usercirclesModel.find({$or:[{user_id:user_id},{circles_user_id:user_id}]},(err1,
                     arr1.push(item._id)
                 })
                  user.collection.aggregate([
+                    // { $lookup:
+                    // {
+                    //     from: 'map_lat_longs',
+                    //     localField: '_id',
+                    //     foreignField: 'user',
+                    //     as: 'orderdetails'
+                    // }
+                    // },
                     { $lookup:
-                    {
-                        from: 'map_lat_longs',
-                        localField: '_id',
-                        foreignField: 'user',
-                        as: 'orderdetails'
-                    }
+                        {
+                            from: 'map_lat_longs',
+                            let: {
+                                user: "$_id"
+                            },
+                            pipeline: [
+                                {
+                                   $match: {
+                                      $expr: {
+                                         $and: [
+                                            {
+                                               $eq: ["$user","$$user"]
+                                            },
+                                            {
+                                               $gt: [
+                                                  "$createdAt",
+                                                  new Date(Date.now() - 24*60*60 * 1000)
+                                               ]
+                                            }
+                                         ]
+                                      }
+                                   }
+                                }
+                             ],
+                            as: 'orderdetails'
+                        }
                     },
-                    
                     ]).toArray(function(err, pin_users) {
                     if (err) throw err;
                     console.log("========= GET the data to get data")
@@ -387,14 +415,42 @@ exports.getAllFilterdPinPoints = function (req,res){
     if(lat && long){
         ///======== createa aaggregation ==========
          user.collection.aggregate([
+            // { $lookup:
+            //    {
+            //      from: 'map_lat_longs',
+            //       localField: '_id',
+            //       foreignField: 'user',
+            //      as: 'orderdetails'
+            //    }
+            //  },
             { $lookup:
-               {
-                 from: 'map_lat_longs',
-                  localField: '_id',
-                  foreignField: 'user',
-                 as: 'orderdetails'
-               }
-             },
+                {
+                    from: 'map_lat_longs',
+                    let: {
+                        user: "$_id"
+                    },
+                    pipeline: [
+                        {
+                           $match: {
+                              $expr: {
+                                 $and: [
+                                    {
+                                       $eq: ["$user","$$user"]
+                                    },
+                                    {
+                                       $gt: [
+                                          "$createdAt",
+                                          new Date(Date.now() - 24*60*60 * 1000)
+                                       ]
+                                    }
+                                 ]
+                              }
+                           }
+                        }
+                     ],
+                    as: 'orderdetails'
+                }
+            },
              {
                 $project: 
                 {
