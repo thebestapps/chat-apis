@@ -600,10 +600,6 @@ exports.get_all_cicles_users = async function(req,res){
             message:'Unable to find user from current login user'
         })
     }
-
-
-
-
 }
 
 // ============ create chat room  and show chat history =============
@@ -980,7 +976,9 @@ exports.testing = function(req, res){
 exports.getPinByAssending = function(req, res){
     var lat1 =req.body.lat
     var lon1 =req.body.long
-    map_lat_longModel.find({},(err,res1)=>{
+    var nearestPins = []
+    var farPins = []
+    map_lat_longModel.find({"createdAt":{$gt:new Date(Date.now() - 24*60*60 * 1000)}},(err,res1)=>{
         if(err){
             return res.json({
                 status:false,
@@ -1004,10 +1002,18 @@ exports.getPinByAssending = function(req, res){
                     dist = dist * 1.609344 
                     res1[i]["__v"]=dist
             }
-            res1.sort((a,b) => (a.__v > b.__v) ? 1 : ((b.__v > a.__v) ? -1 : 0)); 
+            res1.sort((a,b) => (a.__v > b.__v) ? 1 : ((b.__v > a.__v) ? -1 : 0));
+            for(var i = 0;i<res1.length;i++){
+                if(res1[i].__v<500){
+                    nearestPins.push(res1[i]) 
+                }else{
+                    farPins.push(res1[i])
+                }
+            } 
 
             res.status(201).send({
-                data:res1
+                nearestPins:nearestPins,
+                farPins:farPins
             });
         }
     })
