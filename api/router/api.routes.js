@@ -55,6 +55,7 @@ var upload = multer({ storage: storage }).single('profile_pick')
         router.post('/api/get_all_pin_points',apis.getAllPinPoints);
         router.post('/api/filter_pin_points',apis.getAllFilterdPinPoints);
         router.post('/api/add_users_circle',apis.addUsersInCircle);
+        router.post('/api/get_pin_by_assending',apis.getPinByAssending);
         router.post("/api/get_all_circles_users",apis.get_all_cicles_users);
 
         router.post('/api/chat_box', verifyToken, apis.findOrCreate);
@@ -66,7 +67,7 @@ var upload = multer({ storage: storage }).single('profile_pick')
         router.post('/api/chat_group_box', verifyToken, apis.join_group_find);
         router.post('/api/chat_group_list', verifyToken, apis.group_chat_list);
         // ===============================================================
-        // ====================== testing only ========================
+        // ====================== testing only =====================
         router.post('/api/testing', apis.testing);
         // ============================================================
     // }

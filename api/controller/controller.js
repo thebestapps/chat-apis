@@ -36,7 +36,7 @@ exports.signup = function(req, res){
                 if (type == "email") {
                     return res.json({
                         success: 0,
-                        message: "email  is already registered",
+                        message: "email  is already registered may be with google or facebook",
                         data: ''
                     });
                 } else {
@@ -130,7 +130,65 @@ exports.login = function(req, res){
                 });
             }
         });
-    } else {
+    }
+    else if(req.body.type && req.body.email && req.body.device_token && req.body.device_os){
+        console.log("social login");
+        if(req.body.type=="social"){
+            user.findOne({'email': req.body.email},function(err, found){
+                if (err){
+                    return res.json({
+                        success: 0,
+                        message: err,
+                        data: ''
+                    });
+                }
+    
+                if (!found) {
+                    user.create({
+                        username:req.body.email,
+                        email:req.body.email,
+                        device_token:"xxxxx",
+                        device_os:"xxxx"
+                    },function(err,data){
+                        if (err){
+                            return res.json({
+                                success: 0,
+                                message: err,
+                                data: ''
+                            });
+                        }else{
+                            console.log("data",data);
+                            var token = common.generateAccessToken(data.toJSON());
+                            return res.json({
+                                success: 1,
+                                message: "LoggedIn",
+                                user: data.username,
+                                user_id:data._id,
+                                user_token: token,
+                            });
+                        }
+                    })
+                }else{
+                    var token = common.generateAccessToken(found.toJSON());
+                    user.findByIdAndUpdate(found._id, {device_token: req.body.device_token, device_os: req.body.device_os}, {new: true});
+                    return res.json({
+                        success: 1,
+                        message: "LoggedIn",
+                        user: found.username,
+                        user_id:found._id,
+                        user_token: token,
+                    });
+                }
+            });
+        }else{
+            return res.json({
+                success: 0,
+                message: 'please specify type of login it must social',
+                data: ''
+            });
+        }
+    }
+    else {
         return res.json({
             success: 0,
             message: "all field required for login",
@@ -277,7 +335,8 @@ usercirclesModel.find({$or:[{user_id:user_id},{circles_user_id:user_id}]},(err1,
                 arr.push({user:friend_id,circle_id:item1})
             })
         })
-        map_lat_longModel.find({$or:[{circle_id:'Public'},{circle_id:null},{user:user_id},...arr]},{_id:1},(err2,res2)=>{
+        map_lat_longModel.find({$and:[{$or:[{circle_id:'Public'},{circle_id:null},{user:user_id},...arr]},{"createdAt":{$gt:new Date(Date.now() - 20*24*60*60 * 1000)}}]},{_id:1},(err2,res2)=>{
+        // map_lat_longModel.find({$or:[{circle_id:'Public'},{circle_id:null},{user:user_id},...arr]},(err2,res2)=>{
             if(err2){
                 return res.json({
                     status:false,
@@ -290,15 +349,42 @@ usercirclesModel.find({$or:[{user_id:user_id},{circles_user_id:user_id}]},(err1,
                     arr1.push(item._id)
                 })
                  user.collection.aggregate([
+                    // { $lookup:
+                    // {
+                    //     from: 'map_lat_longs',
+                    //     localField: '_id',
+                    //     foreignField: 'user',
+                    //     as: 'orderdetails'
+                    // }
+                    // },
                     { $lookup:
-                    {
-                        from: 'map_lat_longs',
-                        localField: '_id',
-                        foreignField: 'user',
-                        as: 'orderdetails'
-                    }
+                        {
+                            from: 'map_lat_longs',
+                            let: {
+                                user: "$_id"
+                            },
+                            pipeline: [
+                                {
+                                   $match: {
+                                      $expr: {
+                                         $and: [
+                                            {
+                                               $eq: ["$user","$$user"]
+                                            },
+                                            {
+                                               $gt: [
+                                                  "$createdAt",
+                                                  new Date(Date.now() - 24*60*60 * 1000)
+                                               ]
+                                            }
+                                         ]
+                                      }
+                                   }
+                                }
+                             ],
+                            as: 'orderdetails'
+                        }
                     },
-                    
                     ]).toArray(function(err, pin_users) {
                     if (err) throw err;
                     console.log("========= GET the data to get data")
@@ -329,14 +415,42 @@ exports.getAllFilterdPinPoints = function (req,res){
     if(lat && long){
         ///======== createa aaggregation ==========
          user.collection.aggregate([
+            // { $lookup:
+            //    {
+            //      from: 'map_lat_longs',
+            //       localField: '_id',
+            //       foreignField: 'user',
+            //      as: 'orderdetails'
+            //    }
+            //  },
             { $lookup:
-               {
-                 from: 'map_lat_longs',
-                  localField: '_id',
-                  foreignField: 'user',
-                 as: 'orderdetails'
-               }
-             },
+                {
+                    from: 'map_lat_longs',
+                    let: {
+                        user: "$_id"
+                    },
+                    pipeline: [
+                        {
+                           $match: {
+                              $expr: {
+                                 $and: [
+                                    {
+                                       $eq: ["$user","$$user"]
+                                    },
+                                    {
+                                       $gt: [
+                                          "$createdAt",
+                                          new Date(Date.now() - 24*60*60 * 1000)
+                                       ]
+                                    }
+                                 ]
+                              }
+                           }
+                        }
+                     ],
+                    as: 'orderdetails'
+                }
+            },
              {
                 $project: 
                 {
@@ -542,10 +656,6 @@ exports.get_all_cicles_users = async function(req,res){
             message:'Unable to find user from current login user'
         })
     }
-
-
-
-
 }
 
 // ============ create chat room  and show chat history =============
@@ -916,4 +1026,53 @@ exports.testing = function(req, res){
             });
         }
     }
+
+// ==================== get lat lon by ditance ========================
+
+exports.getPinByAssending = function(req, res){
+    var lat1 =req.body.lat
+    var lon1 =req.body.long
+    var nearestPins = []
+    var farPins = []
+    map_lat_longModel.find({"createdAt":{$gt:new Date(Date.now() - 24*60*60 * 1000)}},(err,res1)=>{
+        if(err){
+            return res.json({
+                status:false,
+                message:'Some error occoured.'
+            })
+        }else{
+            for(var i = 0;i<res1.length;i++){
+                var lat2=res1[i].lat
+                var lon2=res1[i].long
+                var radlat1 = Math.PI * lat1/180;
+                    var radlat2 = Math.PI * lat2/180;
+                    var theta = lon1-lon2;
+                    var radtheta = Math.PI * theta/180;
+                    var dist = Math.sin(radlat1) * Math.sin(radlat2) + Math.cos(radlat1) * Math.cos(radlat2) * Math.cos(radtheta);
+                    if (dist > 1) {
+                        dist = 1;
+                    }
+                    dist = Math.acos(dist);
+                    dist = dist * 180/Math.PI;
+                    dist = dist * 60 * 1.1515;
+                    dist = dist * 1.609344 
+                    res1[i]["__v"]=dist
+            }
+            res1.sort((a,b) => (a.__v > b.__v) ? 1 : ((b.__v > a.__v) ? -1 : 0));
+            for(var i = 0;i<res1.length;i++){
+                if(res1[i].__v<500){
+                    nearestPins.push(res1[i]) 
+                }else{
+                    farPins.push(res1[i])
+                }
+            } 
+
+            res.status(201).send({
+                nearestPins:nearestPins,
+                farPins:farPins
+            });
+        }
+    })
+    
+}
 // ==================================================================
