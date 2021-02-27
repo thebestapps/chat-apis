@@ -36,7 +36,7 @@ exports.signup = function(req, res){
                 if (type == "email") {
                     return res.json({
                         success: 0,
-                        message: "Email  is already registered, logging in",
+                        message: "Email  is already registered, try logging in",
                         data: ''
                     });
                 } else {
