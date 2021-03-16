@@ -8,7 +8,7 @@ const user_circle_model = require('../../models/usercircles.model');
 const chat_group = require('../../models/chat_group.model');
 const notification_history = require('../../models/push_history.model');
 const send_notification = require('../../config/notification');
-const { create } = require("../../models/user.model");
+const { create, exists } = require("../../models/user.model");
 const usercirclesModel = require("../../models/usercircles.model");
 const { Template } = require("ejs");
 const map_lat_longModel = require("../../models/map_lat_long.model");
@@ -296,6 +296,7 @@ exports.addNewPinPoint = async function(req,res){
 // ================================== Get All pin points using current location=====
 exports.getAllPinPoints = function (req, res){
     console.log("=== Get All Pin Points Here ====")
+    
     const {lat,long} = req.body
     if(lat && long){
 ///======== createa aaggregation ==========
@@ -325,60 +326,62 @@ usercirclesModel.find({$or:[{user_id:user_id},{circles_user_id:user_id}]},(err1,
                     message:'Some error occoured.'
                 })
             }else{
-                console.log('pinsresult-',res2)
-                let arr1=[]
-                res2.map(item=>{
-                    arr1.push(item._id)
-                })
-                 user.collection.aggregate([
-                    // { $lookup:
-                    // {
-                    //     from: 'map_lat_longs',
-                    //     localField: '_id',
-                    //     foreignField: 'user',
-                    //     as: 'orderdetails'
-                    // }
-                    // },
-                    { $lookup:
-                        {
-                            from: 'map_lat_longs',
-                            let: {
-                                user: "$_id"
-                            },
-                            pipeline: [
-                                {
-                                   $match: {
-                                      $expr: {
-                                         $and: [
-                                            {
-                                               $eq: ["$user","$$user"]
-                                            },
-                                            {
-                                               $gt: [
-                                                  "$createdAt",
-                                                  new Date(Date.now() - 24*60*60 * 1000)
-                                               ]
-                                            }
-                                         ]
-                                      }
-                                   }
-                                }
-                             ],
-                            as: 'orderdetails'
-                        }
-                    },
-                    ]).toArray(function(err, pin_users) {
-                    if (err) throw err;
-                    console.log("========= GET the data to get data")
-                    // console.log(JSON.stringify(pin_users));
-                    return res.json({
-                        status:true,
-                        message:"Get response sucessufully",
-                        data:pin_users,
-                        pin_data:arr1
+                if(pin_icon_type != 'restorant' && pin_icon_type != 'shop'){
+                    console.log('pinsresult-',res2)
+                    let arr1=[]
+                    res2.map(item=>{
+                        arr1.push(item._id)
                     })
-                });
-                
+                    user.collection.aggregate([
+                        // { $lookup:
+                        // {
+                        //     from: 'map_lat_longs',
+                        //     localField: '_id',
+                        //     foreignField: 'user',
+                        //     as: 'orderdetails'
+                        // }
+                        // },
+                        { $lookup:
+                            {
+                                from: 'map_lat_longs',
+                                let: {
+                                    user: "$_id"
+                                },
+                                pipeline: [
+                                    {
+                                    $match: {
+                                        $expr: {
+                                            $and: [
+                                                {
+                                                $eq: ["$user","$$user"]
+                                                },
+                                                {
+                                                $gt: [
+                                                    "$createdAt",
+                                                    new Date(Date.now() - 24*60*60 * 1000)
+                                                ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                    }
+                                ],
+                                as: 'orderdetails'
+                            }
+                        },
+                        ]).toArray(function(err, pin_users) {
+                        if (err) throw err;
+
+                        console.log("========= GET the data to get data")
+                        // console.log(JSON.stringify(pin_users));
+                        return res.json({
+                            status:true,
+                            message:"Get response sucessufully",
+                            data:pin_users,
+                            pin_data:arr1
+                        })
+                    });
+                }
             }
             // console.log('pinsresult-',res2)
         })

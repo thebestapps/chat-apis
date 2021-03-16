@@ -8,7 +8,7 @@ var userSchema = mongoose.Schema({
     },
     lat: String,
     long: String,
-    pin_icon_type: String,
+    pin_icon_type: String, //restorant or shop
     message: String,
     circle_id: String
 }, {

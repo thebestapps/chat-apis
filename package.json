@@ -3,9 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-  "scripts": {
-    "devStart": "nodemon server.js"
-  },
+  "scripts": {},
   "author": "",
   "license": "ISC",
   "dependencies": {
@@ -27,9 +25,8 @@
     "node-tesseract-ocr": "^1.0.0",
     "passport": "^0.4.1",
     "path": "^0.12.7",
-    "socket.io": "^2.3.0"
-  },
-  "devDependencies": {
+    "socket.io": "^2.3.0",
     "nodemon": "^1.19.4"
-  }
+  },
+  "devDependencies": {}
 }
