@@ -377,9 +377,28 @@ exports.getAllPinPoints = function (req, res) {
                   ],
                 },
                 {
-                  createdAt: {
-                    $gt: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000),
-                  },
+                    $or:[
+                        {
+                            $or:[
+                                {pin_icon_type:{$eq:"cafe"}},
+                                {pin_icon_type:{$eq:"restaurant"}},
+                                {pin_icon_type:{$eq:"business"}},
+                            ]
+                        },
+                        {
+                            $and:[
+                                {
+                                    createdAt: {
+                                      $gt: new Date(Date.now() - 24 * 60 * 60 * 1000),
+                                    },
+                                },
+                                {pin_icon_type:{$ne:"cafe"}},
+                                {pin_icon_type:{$ne:"restaurant"}},
+                                {pin_icon_type:{$ne:"business"}},
+                            ]
+                        }
+                        
+                    ]
                 },
               ],
             },
@@ -441,7 +460,7 @@ exports.getAllPinPoints = function (req, res) {
                   .toArray(function (err, pin_users) {
                     if (err) throw err;
                     console.log("========= GET the data to get data");
-                    console.log(JSON.stringify(pin_users));
+                    // console.log(JSON.stringify(pin_users));
                     return res.json({
                       status: true,
                       message: "Get response sucessufully",
