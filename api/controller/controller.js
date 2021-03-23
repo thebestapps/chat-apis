@@ -247,29 +247,72 @@ exports.lat_long = function (req, res) {
 
 // ========================UPDATE==========================================
 
-exports.updateUser = (req, res) => {
+// exports.updateUser = (req, res) => {
+//   if (!req.body) {
+//     return res.status(400).send({
+//       message: "Data to update can not be empty!",
+//     });
+//   }
+
+//   const id = req.params.id;
+
+//   user
+//     .findByIdAndUpdate(id, req.body, { useFindAndModify: false })
+//     .then((data) => {
+//       if (!data) {
+//         res.status(404).send({
+//           message: `Cannot update User with id=${id}. Maybe User was not found!`,
+//         });
+//       } else res.send({ message: "User was updated successfully." });
+//     })
+//     .catch((err) => {
+//       res.status(500).send({
+//         message: "Error updating User with id=" + id,
+//       });
+//     });
+// };
+
+exports.updateUser = async (req, res) => {
+  // Validate Request
   if (!req.body) {
-    return res.status(400).send({
-      message: "Data to update can not be empty!",
+    return res.json({
+      code: 201,
+      message: "User content can not be empty",
+      success: false,
     });
   }
-
-  const id = req.params.id;
-
-  user
-    .findByIdAndUpdate(id, req.body, { useFindAndModify: false })
-    .then((data) => {
-      if (!data) {
-        res.status(404).send({
-          message: `Cannot update User with id=${id}. Maybe User was not found!`,
-        });
-      } else res.send({ message: "User was updated successfully." });
-    })
-    .catch((err) => {
-      res.status(500).send({
-        message: "Error updating User with id=" + id,
+  console.log("=============//////////-----/////////===============");
+  console.log(req.params.id);
+  console.log(req.body);
+  // const id = req.params.id;
+  // Find and update product with the request body
+  user.findOneAndUpdate(req.params.id, req.body, { new: true }, function (
+    err,
+    founduser
+  ) {
+    if (err) {
+      res.json({
+        code: 201,
+        error: err,
+        success: false,
       });
-    });
+    } else {
+      if (founduser) {
+        return res.json({
+          code: 200,
+          success: true,
+          message: "User Updated Successfully.",
+          data: founduser,
+        });
+      } else {
+        res.json({
+          code: 201,
+          message: "User not found with id. " + req.params.userid,
+          success: false,
+        });
+      }
+    }
+  });
 };
 
 // ========================= Add New Pin point in DB with user ID =========
@@ -377,28 +420,27 @@ exports.getAllPinPoints = function (req, res) {
                   ],
                 },
                 {
-                    $or:[
+                  $or: [
+                    {
+                      $or: [
+                        { pin_icon_type: { $eq: "cafe" } },
+                        { pin_icon_type: { $eq: "restaurant" } },
+                        { pin_icon_type: { $eq: "business" } },
+                      ],
+                    },
+                    {
+                      $and: [
                         {
-                            $or:[
-                                {pin_icon_type:{$eq:"cafe"}},
-                                {pin_icon_type:{$eq:"restaurant"}},
-                                {pin_icon_type:{$eq:"business"}},
-                            ]
+                          createdAt: {
+                            $gt: new Date(Date.now() - 24 * 60 * 60 * 1000),
+                          },
                         },
-                        {
-                            $and:[
-                                {
-                                    createdAt: {
-                                      $gt: new Date(Date.now() - 24 * 60 * 60 * 1000),
-                                    },
-                                },
-                                {pin_icon_type:{$ne:"cafe"}},
-                                {pin_icon_type:{$ne:"restaurant"}},
-                                {pin_icon_type:{$ne:"business"}},
-                            ]
-                        }
-                        
-                    ]
+                        { pin_icon_type: { $ne: "cafe" } },
+                        { pin_icon_type: { $ne: "restaurant" } },
+                        { pin_icon_type: { $ne: "business" } },
+                      ],
+                    },
+                  ],
                 },
               ],
             },

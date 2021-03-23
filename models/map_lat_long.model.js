@@ -1,20 +1,25 @@
-var mongoose = require('mongoose');
-var bcrypt = require('bcrypt-nodejs');
+var mongoose = require("mongoose");
+var bcrypt = require("bcrypt-nodejs");
 
-var userSchema = mongoose.Schema({
+var userSchema = mongoose.Schema(
+  {
     user: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'user'
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "user",
     },
     lat: String,
     long: String,
     pin_icon_type: String, //restorant or shop
     message: String,
-    circle_id: String
-}, {
-    timestamps: true
-});
-
+    circle_id: String,
+    restro_icon: String,
+    name: String,
+    address: String,
+  },
+  {
+    timestamps: true,
+  }
+);
 
 //create the model for users and expose it to our app
-module.exports = mongoose.model('map_lat_long', userSchema);
+module.exports = mongoose.model("map_lat_long", userSchema);
