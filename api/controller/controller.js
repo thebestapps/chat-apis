@@ -412,7 +412,7 @@ exports.addNewPinPoint = async function(req,res){
 				create_group.members.push(user_id);
 				create_group.save(async (err, done) => {
 					let find_user = await user.findById(user_id);
-					find_user.chat_group_id.push(done._id);
+// 					find_user.chat_group_id.push(done._id);
 					await find_user.save();
 					return res.json({
 						success: 1,
