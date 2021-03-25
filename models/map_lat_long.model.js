@@ -12,9 +12,6 @@ var userSchema = mongoose.Schema(
     pin_icon_type: String, //restorant or shop
     message: String,
     circle_id: String,
-    restro_icon: String,
-    name: String,
-    address: String,
   },
   {
     timestamps: true,
