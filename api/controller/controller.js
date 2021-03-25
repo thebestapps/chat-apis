@@ -316,66 +316,121 @@ exports.updateUser = async (req, res) => {
 };
 
 // ========================= Add New Pin point in DB with user ID =========
-exports.addNewPinPoint = async function (req, res) {
-  console.log("Add_new_pin_point");
-  console.log("\n", req.body);
-  const {
-    lat,
-    long,
-    user_token,
-    username,
-    user_id,
-    type,
-    message,
-    circle_id,
-  } = req.body;
+// exports.addNewPinPoint = async function (req, res) {
+//   console.log("Add_new_pin_point");
+//   console.log("\n", req.body);
+//   const {
+//     lat,
+//     long,
+//     user_token,
+//     username,
+//     user_id,
+//     type,
+//     message,
+//     circle_id,
+//   } = req.body;
 
-  //if (lat && long && user_token && username && type && circle_id) {
-  if (lat && long && user_token && username && type) {
-    // jwt.verify(req.token, process.env.ACCESS_TOKEN_SECRET, (err, found) =>{
-    //  pin.save()
-    // })
-    var pin_ponts = new pin();
-    pin_ponts.user = user_id;
-    pin_ponts.lat = lat;
-    pin_ponts.long = long;
-    pin_ponts.pin_icon_type = type;
-    pin_ponts.message = message;
-    pin_ponts.circle_id = circle_id;
+//   //if (lat && long && user_token && username && type && circle_id) {
+//   if (lat && long && user_token && username && type) {
+//     // jwt.verify(req.token, process.env.ACCESS_TOKEN_SECRET, (err, found) =>{
+//     //  pin.save()
+//     // })
+//     var pin_ponts = new pin();
+//     pin_ponts.user = user_id;
+//     pin_ponts.lat = lat;
+//     pin_ponts.long = long;
+//     pin_ponts.pin_icon_type = type;
+//     pin_ponts.message = message;
+//     pin_ponts.circle_id = circle_id;
 
-    pin_ponts.save((err, saved) => {
-      if (err) {
-        return res.json({
-          success: 0,
-          message: err || "Unable to add pin points",
-          data: "",
-        });
-      } else {
-        var token = common.generateAccessToken(pin_ponts.toJSON());
-        let create_group = new chat_group();
-        create_group.pin_id = saved._id;
-        create_group.members.push(user_id);
-        create_group.save(async (err, done) => {
-          let find_user = await user.findById(user_id);
-          find_user.chat_group_id.push(done._id);
-          await find_user.save();
-          return res.json({
-            success: 1,
-            message: "pin point added sucessfully",
-            user: username,
-            user_token: token,
-          });
-        });
-      }
-    });
-  } else {
-    return res.json({
-      success: 0,
-      message: "All fields are required",
-      data: "",
-    });
-  }
-};
+//     pin_ponts.save((err, saved) => {
+//       if (err) {
+//         return res.json({
+//           success: 0,
+//           message: err || "Unable to add pin points",
+//           data: "",
+//         });
+//       } else {
+//         var token = common.generateAccessToken(pin_ponts.toJSON());
+//         let create_group = new chat_group();
+//         create_group.pin_id = saved._id;
+//         create_group.members.push(user_id);
+//         create_group.save(async (err, done) => {
+//           let find_user = await user.findById(user_id);
+//           find_user.chat_group_id.push(done._id);
+//           await find_user.save();
+//           return res.json({
+//             success: 1,
+//             message: "pin point added sucessfully",
+//             user: username,
+//             user_token: token,
+//           });
+//         });
+//       }
+//     });
+//   } else {
+//     return res.json({
+//       success: 0,
+//       message: "All fields are required",
+//       data: "",
+//     });
+//   }
+// };
+
+
+
+// ========================= Add New Pin point in DB with user ID =========
+exports.addNewPinPoint = async function(req,res){
+    console.log("Add_new_pin_point")
+    console.log("\n",req.body)
+    const {lat,long,user_token,username, user_id, type,message, circle_id } = req.body
+    
+    //if (lat && long && user_token && username && type && circle_id) {
+    if (lat && long && user_token && username && type) {
+		// jwt.verify(req.token, process.env.ACCESS_TOKEN_SECRET, (err, found) =>{
+		//  pin.save()
+		// })
+		var pin_ponts = new pin();
+		pin_ponts.user = user_id;
+		pin_ponts.lat = lat;
+		pin_ponts.long = long;
+		pin_ponts.pin_icon_type = type;
+        pin_ponts.message = message;
+        pin_ponts.circle_id = circle_id;
+        
+		pin_ponts.save((err, saved) => {
+			if (err) {
+				return res.json({
+					success: 0,
+					message: err || "Unable to add pin points",
+					data: "",
+				});
+			} else {
+				var token = common.generateAccessToken(pin_ponts.toJSON());
+				let create_group = new chat_group();
+				create_group.pin_id = saved._id;
+				create_group.members.push(user_id);
+				create_group.save(async (err, done) => {
+					let find_user = await user.findById(user_id);
+					find_user.chat_group_id.push(done._id);
+					await find_user.save();
+					return res.json({
+						success: 1,
+						message: "pin point added sucessfully",
+						user: username,
+						user_token: token,
+					});
+				});
+			}
+		});
+	} else {
+		return res.json({
+			success: 0,
+			message: "All fields are required",
+			data: "",
+		});
+	}
+}
 
 // ==================================================================
 
