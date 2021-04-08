@@ -15,6 +15,8 @@ var userSchema = mongoose.Schema(
     restro_icon: String,
     name: String,
     address: String,
+description:String,
+
   },
   {
     timestamps: true,
