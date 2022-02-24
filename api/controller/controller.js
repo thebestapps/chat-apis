@@ -4,6 +4,7 @@ const common = require("../../config/functions");
 const jwt = require("jsonwebtoken");
 const chat = require("../../models/chat.model");
 const pin = require("../../models/map_lat_long.model");
+const business = require("../../models/business.model");
 const user_circle_model = require("../../models/usercircles.model");
 const chat_group = require("../../models/chat_group.model");
 const notification_history = require("../../models/push_history.model");
@@ -313,6 +314,90 @@ exports.updateUser = async (req, res) => {
       }
     }
   });
+};
+
+// ========================= Add New Business =========
+exports.addNewBusiness = async function (req, res) {
+  console.log("add_new_business");
+  console.log("\n", req.body);
+  const {
+    lat,
+    long,
+    pin_icon_type,
+    restro_icon,
+    name,
+    address,
+    description,
+  } = req.body;
+
+  if (lat && long) {
+    var bus = new business();
+    bus.pin_icon_type = pin_icon_type;
+    bus.restro_icon = restro_icon;
+    bus.name = name;
+    bus.address = address;
+    bus.description = description;
+    bus.loc = { type: "Point", coordinates: [ long, lat ] };
+
+    bus.save((err, saved) => {
+      if (err) {
+        return res.json({
+          success: false,
+          message: err || "Unable to add business",
+          data: "",
+        });
+      } else {
+        return res.json({
+          success: true,
+          message: "Business added sucessfully",
+          data: "",
+        });
+      }
+    });
+  } else {
+    return res.json({
+      success: false,
+      message: "All fields are required",
+      data: "",
+    });
+  }
+};
+
+// ================================== Get All business using current location=====
+exports.getAllBusiness = function (req, res) {
+  console.log("=== Get All Business Here ====");
+  const { lat, long } = req.body;
+  if (lat && long) {
+    ///======== createa aaggregation ==========
+    business
+        .find({loc: {
+          $near: {
+            $geometry: {
+               type: "Point" ,
+               coordinates: [ lat , long ]
+            },
+          }
+        }})
+        .then(function (data) {
+          res.send({
+            code: 200,
+            message: "Business found",
+            data: data,
+            success: true
+          });
+          // console.log("RESPONSE ++>", data);
+        }).catch((err) => {
+          res.send({
+            code: 200,
+            message: "No business found",
+            data: undefined,
+            success: false
+          });
+        });
+
+    //======================================
+  }
+  // return res
 };
 
 // ========================= Add New Pin point in DB with user ID =========

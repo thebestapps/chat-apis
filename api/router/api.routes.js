@@ -52,6 +52,8 @@ var upload = multer({ storage: storage }).single('profile_pick')
         // ---
         router.post('/api/lat_long', verifyToken, apis.lat_long)
         router.post('/api/add_new_pin_point', apis.addNewPinPoint);
+        router.post('/api/add_new_business', apis.addNewBusiness);
+        router.post('/api/get_business',apis.getAllBusiness);
         router.post('/api/get_all_pin_points',apis.getAllPinPoints);
         router.post('/api/filter_pin_points',apis.getAllFilterdPinPoints);
         router.post('/api/add_users_circle',apis.addUsersInCircle);

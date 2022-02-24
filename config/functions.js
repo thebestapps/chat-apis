@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken');
 const chat = require('../models/chat.model');
 const user = require('../models/user.model');
+const business = require('../models/business.model');
 const push_history = require('../models/push_history.model');
 const pin = require('../models/map_lat_long.model');
 const send_notification = require('./notification');
